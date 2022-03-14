@@ -9,7 +9,7 @@ const fontAwesomeSrc = process.env.fontAwesomeAPI;
 
 exports.getHome = async (req, res)=>{
     const {user} = req.params;
-    res.send(`Welcome home ${user}`);
+    res.redirect('/arts');
 }
 
 exports.getNew = async(req,res )=>{
@@ -18,28 +18,39 @@ exports.getNew = async(req,res )=>{
 
 exports.createUser = async(req, res)=>{
     try {
-        const {email, username, password} = req.body;
+        const {email, username, DOB, password} = req.body;
         const user = new User({
             email,
-            username
+            username,
+            DOB,
         });
+        // flash
+        user.Bio.profileImage.url = 'https://dev-app-clone-994214.s3.amazonaws.com/1646642994810__cat.jpg'
+        // console.log(DOB);
         const registeredUser = await User.register(user, password);
         // console.log(registeredUser);
-        // res.send(registeredUser);
-        res.redirect('/users/login')
+        // res.send(registeredUser);c
+        await registeredUser.save();
+        // console.log(user);
+        req.flash('success', 'User is created successfully!');
+        res.redirect('/users/login');
+        // res.send(req.body);
         } catch(e) {
             // if something wrong redirect the user
             // normally we would use flash
-            res.redirect('/users')
+            // console.log('an error occured')
+            // console.log(e);
+            req.flash('error', e.message);
+            res.redirect('/users/new');
         }
 }
 
-exports.loginForm = async(req, res)=>{
-    res.render('users/login', {fontAwesomeSrc});
+exports.getLogin = async(req, res)=>{
+    res.render('users/login');
 }
 
 exports.login = async(req, res)=>{
-    req.flash('success', 'You are now logged in!')
+    req.flash('success', `Welcome ${req.user.username}!`)
     res.redirect('/arts');
 }
 

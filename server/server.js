@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const { getHome } = require('./controllers/user_controllers');
 const app = express();
-const port = process.env.PORT | 5050;
+const port = process.env.PORT | 7098;
 const methodOverride = require('method-override');
 const User = require('./models/User');
 const Art = require('./models/Art')
@@ -17,41 +17,23 @@ const localStrategy = require('passport-local');
 const multer = require('multer')
 const multerS3 = require('multer-s3');
 const aws = require('aws-sdk');
-// https://www.mongodb.com/languages/mern-stack-tutorial
-
-// const s3 = new aws.S3({
-//     accessKeyId: process.env.S3_ACCESS_KEY,
-//     secretAccessKey: process.env.S3_SECRET_KEY,
-//     region: process.env.S3_BUCKET_REGION
-// })
-
-// const upload = multer({
-//     storage: multerS3({
-//         // s3 
-//         s3: s3,
-//         bucket: "dev-app-clone-994214",
-//         metadata: function (req, file, cb) {
-//             cb(null, {fieldName: file.fieldname});
-//           },
-//         key: function(req,file,cb){
-//             cb(null, file)
-//         }
-//     })
-// });
+var favicon = require('serve-favicon');
 
 // routers
 const userRoutes = require('./routes/users')
 const artRoutes = require('./routes/arts')
 // session 
 sessionOptions = {
-    secret:process.env.secret,
     resave: false,
     saveUninitialized: false,
+    secret:'sadasfaf',
 }
+
 app.use(session(sessionOptions))
 app.use(flash())
 
-
+// setting favicom
+app.use(favicon(path.join(__dirname, 'public','images','favicon.ico')))
 // parse file from the form
 // multer({dest: ''});
 app.use(methodOverride('_method'));
@@ -59,6 +41,7 @@ app.use(morgan('tiny'));
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 app.use(express.static(path.resolve(__dirname,'public')));
+// app.use(express.static(path.join(__dirname,'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.resolve(__dirname, 'views'));
 app.engine('ejs', ejsMate);
@@ -81,6 +64,7 @@ passport.deserializeUser(User.deserializeUser())
 
 // set local var for res
 
+// store the signedUser 
 app.use((req, res, next)=>{
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
@@ -94,6 +78,11 @@ app.use('/users', userRoutes)
 app.get('/test', (req, res)=>{
   res.render('test')  
 })
+
+// Handling non matching request
+app.use((req, res, next) => {
+    res.status(404).render('404')
+  })
 
 
 app.listen(port, ()=>{
